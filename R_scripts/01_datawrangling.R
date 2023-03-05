@@ -33,5 +33,11 @@ GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_no name creek")
-
-
+#View metadata to get info about object class, coordinate reference system, and spatial extent
+GrassyCreekWatershed
+NoNameCreekWatershed
+  #these shapefiles are polygons using the transverse mercator   map projection 
+#checking out the attributes of the shapefiles
+GrassyCreekWatershed@data
+NoNameCreekWatershed@data
+  #nothing super useful in the attributes
