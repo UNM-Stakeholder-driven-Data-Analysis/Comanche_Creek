@@ -111,4 +111,14 @@ plot(GrassyUTM, add = TRUE)
 Grassyinfra.Masked <- mask(x = near.infrared_crop_grassy, mask = GrassyUTM)
 plot(Grassyinfra.Masked)
 
+#Do math for NDVI and plot
+
+Grassyndvi = (Grassyinfra.Masked - GrassyMasked) / (Grassyinfra.Masked + GrassyMasked)
+
+colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
+
+plot(Grassyndvi, zlim=c(0, 0.6), col=colors)
+
+#Let's see what the NDVI values look like
+hist(Grassyndvi)
 
