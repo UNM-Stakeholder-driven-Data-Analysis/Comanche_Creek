@@ -94,7 +94,7 @@ plot(masked)
 plot(near.infrared, col = rev(terrain.colors(50)))
 
 #plot Grassy Creek shapefile
-plot(GrassyCreekUTM,
+plot(GrassyUTM,
      main = "No Name Creek Watershed",
      axes = TRUE,
      border = "blue",
@@ -109,6 +109,6 @@ plot(GrassyUTM, add = TRUE)
 
 #view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
 Grassyinfra.Masked <- mask(x = near.infrared_crop_grassy, mask = GrassyUTM)
-plot(masked)
+plot(Grassyinfra.Masked)
 
 
