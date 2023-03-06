@@ -5,10 +5,15 @@
 # install.packages('devtools')
 # devtools::install_github("dkahle/ggmap")
 # install.packages('maps')
-install.packages('rgdal')
-install.packages('rgeos')
-install.packages('raster')
+# install.packages('rgdal')
+# install.packages('rgeos')
+# install.packages('raster')
+# install.packages('stars')
+# install.packages('sf')
 
+library(stars)
+library(sf)
+library(ggplot2)
 library(rgdal)
 library(rgeos)
 library(raster)
@@ -70,14 +75,40 @@ plot(red, col = rev(terrain.colors(50)))
 plot(GrassyUTM,
      main = "Grassy Creek Watershed",
      axes = TRUE,
-     border = "blue")
+     border = "blue",
+     add = TRUE)
 
 # crop the lidar raster using the vector extent
-red_crop_grassy <- crop(red, GrassyUTM)
-
+red_crop_grassy <- crop(x = red, y= GrassyUTM)
 plot(red_crop_grassy)
 
 # add shapefile on top of the existing raster
-plot(GrassyUTM, add = TRUE)
+plot(GrassyUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+GrassyMasked <- mask(x = red_crop_grassy, mask = GrassyUTM)
+plot(masked)
+
+##Do the same for the infrared band##
+#plot infrared band
+plot(near.infrared, col = rev(terrain.colors(50)))
+
+#plot Grassy Creek shapefile
+plot(GrassyCreekUTM,
+     main = "No Name Creek Watershed",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+near.infrared_crop_grassy <- crop(x = near.infrared, y= GrassyUTM)
+plot(near.infrared_crop_grassy)
+
+# add shapefile on top of the existing raster
+plot(GrassyUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+Grassyinfra.Masked <- mask(x = near.infrared_crop_grassy, mask = GrassyUTM)
+plot(masked)
 
 
