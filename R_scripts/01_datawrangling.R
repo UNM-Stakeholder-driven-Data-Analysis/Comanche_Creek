@@ -19,19 +19,19 @@ library(rgeos)
 library(raster)
 library(ggmap)
 
-#### Load Data ####
-
 #### Mapping ####
 
 #creating basemap of Valle Vidal unit on Carson Nat'l Forest
-ValleVidalMap <- get_stamenmap(bbox = c(left = -105.3393,
-                                bottom = 36.7202,
-                                right = -105.2284,
-                                top = 36.8401),
-                       maptype = "terrain", 
-                       crop = FALSE,
-                       zoom = 12)
-ggmap(ValleVidalMap)
+# ValleVidalMap <- get_stamenmap(bbox = c(left = -105.3393,
+#                                 bottom = 36.7202,
+#                                 right = -105.2284,
+#                                 top = 36.8401),
+#                        maptype = "terrain", 
+#                        crop = FALSE,
+#                        zoom = 12)
+# ggmap(ValleVidalMap)
+
+#### Load Data ####
 
 #Loading shapefiles of Grassy Creek and No Name Creek watershed boundaries
 GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
@@ -44,7 +44,7 @@ NoNameCreekWatershed
 #these shapefiles are polygons using the transverse mercator  map projection 
 #we need them to be in UTM so they have the same crs as the Landsat 8 data
 
-#Add Landsat data; we need red and infrared bands for NDVI
+#Add Landsat data; we need red (band 4) and infrared (band 5) for NDVI
 
 red <- raster("data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
 near.infrared <- raster("data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
@@ -54,14 +54,14 @@ near.infrared <- raster("data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_2020
 GrassyUTM <- spTransform(GrassyCreekWatershed,
                               crs(red))
 crs(GrassyUTM)
-#now the Grassy Creek Watershed shapfile is in UTM instead of tmerc
+#now the Grassy Creek Watershed shapefile is in UTM instead of tmerc
 
 NoNameUTM <- spTransform(NoNameCreekWatershed,
                          crs(red))
 crs(NoNameUTM)
 
 
-# #plot shapefiles
+# plot shapefiles
 # plot(ValleVidalMap)
 # plot(NoNameCreekWatershed, col = "green", add = TRUE)
 # plot(GrassyCreekWatershed, col = "blue", add = TRUE)
@@ -85,9 +85,9 @@ plot(red_crop_grassy)
 # add shapefile on top of the existing raster
 plot(GrassyUTM, add = TRUE) 
 
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
 GrassyMasked <- mask(x = red_crop_grassy, mask = GrassyUTM)
-plot(masked)
+plot(GrassyMasked)
 
 ##Do the same for the infrared band##
 #plot infrared band
@@ -122,3 +122,22 @@ plot(Grassyndvi, zlim=c(0, 0.6), col=colors)
 #Let's see what the NDVI values look like
 hist(Grassyndvi)
 
+#extract NDVI values from raster
+Grassyndvi_vals = values(Grassyndvi)
+Grassyndvi_vals
+
+#remove NAs
+Grassyndvi_noNAs <- Grassyndvi_vals[!is.na(Grassyndvi_vals)]
+
+#check out the data
+summary(Grassyndvi_noNAs)
+hist(Grassyndvi_noNAs)
+
+#make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
+
+NDVIGrassy082013 = data.frame (Site = "Grassy Creek",
+                               Year = 2013,
+                               Month = 08,
+                               NDVI = Grassyndvi_noNAs)
+                               
+                               
