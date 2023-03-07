@@ -56,6 +56,7 @@ GrassyUTM <- spTransform(GrassyCreekWatershed,
 crs(GrassyUTM)
 #now the Grassy Creek Watershed shapefile is in UTM instead of tmerc
 
+#change No Name Creek to URM too
 NoNameUTM <- spTransform(NoNameCreekWatershed,
                          crs(red))
 crs(NoNameUTM)
@@ -67,6 +68,7 @@ crs(NoNameUTM)
 # plot(GrassyCreekWatershed, col = "blue", add = TRUE)
 #   #I can't get both shapefiles to plot on the same map, so I'm   going to move on for now and come back to this later
 
+#### Grassy Creek ####
 
 #plot red band
 plot(red, col = rev(terrain.colors(50)))
@@ -95,7 +97,7 @@ plot(near.infrared, col = rev(terrain.colors(50)))
 
 #plot Grassy Creek shapefile
 plot(GrassyUTM,
-     main = "No Name Creek Watershed",
+     main = "Grassy Creek Watershed",
      axes = TRUE,
      border = "blue",
      add = TRUE)
@@ -135,9 +137,83 @@ hist(Grassyndvi_noNAs)
 
 #make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
 
-NDVIGrassy082013 = data.frame (Site = "Grassy Creek",
+NDVIGrassy082013 = data.frame (Site = "Grassy_Creek",
                                Year = 2013,
                                Month = 08,
                                NDVI = Grassyndvi_noNAs)
+
+#### No Name ####
+
+#plot red band
+plot(red, col = rev(terrain.colors(50)))
+
+#plot No Name Creek shapefile
+plot(NoNameUTM,
+     main = "No Name Creek Watershed",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+red_crop_noname <- crop(x = red, y= NoNameUTM)
+plot(red_crop_noname)
+
+# add shapefile on top of the existing raster
+plot(NoNameUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
+NoNameMasked <- mask(x = red_crop_noname, mask = NoNameUTM)
+plot(NoNameMasked)
+
+##Do the same for the infrared band##
+#plot infrared band
+plot(near.infrared, col = rev(terrain.colors(50)))
+
+#plot NoName Creek shapefile
+plot(NoNameUTM,
+     main = "No Name Creek Watershed",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+near.infrared_crop_noname <- crop(x = near.infrared, y= NoNameUTM)
+plot(near.infrared_crop_noname)
+
+# add shapefile on top of the existing raster
+plot(NoNameUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+NoNameinfra.Masked <- mask(x = near.infrared_crop_noname, mask = NoNameUTM)
+plot(NoNameinfra.Masked)
+
+#Do math for NDVI and plot
+
+NoNamendvi = (NoNameinfra.Masked - NoNameMasked) / (NoNameinfra.Masked + NoNameMasked)
+
+colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
+
+plot(NoNamendvi, zlim=c(0, 0.6), col=colors)
+
+#Let's see what the NDVI values look like
+hist(NoNamendvi)
+
+#extract NDVI values from raster
+NoNamendvi_vals = values(NoNamendvi)
+NoNamendvi_vals
+
+#remove NAs
+NoNamendvi_noNAs <- NoNamendvi_vals[!is.na(NoNamendvi_vals)]
+
+#check out the data
+summary(NoNamendvi_noNAs)
+hist(NoNamendvi_noNAs)
+
+#make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
+
+NDVINoName082013 = data.frame (Site = "NoName_Creek",
+                               Year = 2013,
+                               Month = 08,
+                               NDVI = NoNamendvi_noNAs)
                                
                                
