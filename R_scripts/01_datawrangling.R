@@ -10,6 +10,8 @@
 # install.packages('raster')
 # install.packages('stars')
 # install.packages('sf')
+#install.packages('parallel')
+#install.packages('reproducible')
 
 library(stars)
 library(sf)
@@ -18,6 +20,8 @@ library(rgdal)
 library(rgeos)
 library(raster)
 library(ggmap)
+library(parallel)
+library(reproducible)
 
 #### Mapping ####
 
@@ -46,8 +50,8 @@ NoNameCreekWatershed
 
 #Add Landsat data; we need red (band 4) and infrared (band 5) for NDVI
 
-red <- raster("data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
-near.infrared <- raster("data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
+red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
+near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
 
 #reproject the watershed shapefiles using the crs for the Landsat data, in this case we using the 'red' band which uses the UTM projection
 
@@ -141,6 +145,8 @@ NDVIGrassy082013 = data.frame (Site = "Grassy_Creek",
                                Year = 2013,
                                Month = 08,
                                NDVI = Grassyndvi_noNAs)
+#make a CSV of the data
+write.csv(NDVIGrassy082013, "data/processed/NDVIGrassy082013.csv")
 
 #### No Name ####
 
@@ -215,5 +221,26 @@ NDVINoName082013 = data.frame (Site = "NoName_Creek",
                                Year = 2013,
                                Month = 08,
                                NDVI = NoNamendvi_noNAs)
-                               
+
+#make a CSV of the data                               
+write.csv(NDVINoName082013, "data/processed/NDVINoName082013.csv")
+  
+
+#### Automation ####
+#Thanks to Alex Cameron for explaining this to me and annotating the code
+
+#create a list of files
+
+Red.files<- list.files(path = "C:/Users/laure/Documents/1- UNM/Stakeholder-Driven Analysis/Comanche_Creek/data/raw",  ##files are in current directory (couldn't get this to work without the full file path- fix later)
+                      pattern = "B4.TIF", ## This would be whatever your file extension
+                      full.names = F)
+
+## now read your list into lapply/mclappy
+
+mclapply(my.files, function(x){
+  Red_crop_grassy <- crop(Red.files, y = GrassyUTM) ##crop the raster
+  outName<- .suffix(x, "red_clipped_grassy")  ##store the new name for output
+  #writeRater(red_clipped_grassy, outname) ## write out the new clipped file
+}, mc.cores = 1)
+
                                
