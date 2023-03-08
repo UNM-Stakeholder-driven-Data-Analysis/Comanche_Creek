@@ -12,6 +12,8 @@
 # install.packages('sf')
 #install.packages('parallel')
 #install.packages('reproducible')
+#install.packages('readr')
+#install.packages('dplyr')
 
 library(stars)
 library(sf)
@@ -22,6 +24,8 @@ library(raster)
 library(ggmap)
 library(parallel)
 library(reproducible)
+library(dplyr)
+library(readr)
 
 #### Mapping ####
 
@@ -50,8 +54,9 @@ NoNameCreekWatershed
 
 #Add Landsat data; we need red (band 4) and infrared (band 5) for NDVI
 
-red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
-near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
+red <- raster("data/raw/LE07_L1TP_033035_20050827_20200914_02_T1_B4.TIF")
+near.infrared <- raster("data/raw/LE07_L1TP_033035_20050827_20200914_02_T1_B5.TIF")
+
 
 #reproject the watershed shapefiles using the crs for the Landsat data, in this case we using the 'red' band which uses the UTM projection
 
@@ -141,12 +146,12 @@ hist(Grassyndvi_noNAs)
 
 #make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
 
-NDVIGrassy082013 = data.frame (Site = "Grassy_Creek",
-                               Year = 2013,
+NDVIGrassy082005 = data.frame (Site = "Grassy_Creek",
+                               Year = 2005,
                                Month = 08,
                                NDVI = Grassyndvi_noNAs)
 #make a CSV of the data
-write.csv(NDVIGrassy082013, "data/processed/NDVIGrassy082013.csv")
+write.csv(NDVIGrassy082005, "data/processed/NDVIGrassy082005.csv")
 
 #### No Name ####
 
@@ -217,13 +222,13 @@ hist(NoNamendvi_noNAs)
 
 #make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
 
-NDVINoName082013 = data.frame (Site = "NoName_Creek",
-                               Year = 2013,
+NDVINoName082005 = data.frame (Site = "NoName_Creek",
+                               Year = 2005,
                                Month = 08,
                                NDVI = NoNamendvi_noNAs)
 
 #make a CSV of the data                               
-write.csv(NDVINoName082013, "data/processed/NDVINoName082013.csv")
+write.csv(NDVINoName082005, "data/processed/NDVINoName082005.csv")
   
 
 #### Automation ####
@@ -231,16 +236,26 @@ write.csv(NDVINoName082013, "data/processed/NDVINoName082013.csv")
 
 #create a list of files
 
-Red.files<- list.files(path = "C:/Users/laure/Documents/1- UNM/Stakeholder-Driven Analysis/Comanche_Creek/data/raw",  ##files are in current directory (couldn't get this to work without the full file path- fix later)
-                      pattern = "B4.TIF", ## This would be whatever your file extension
-                      full.names = F)
+# Red.files<- list.files(path = "C:/Users/laure/Documents/1- UNM/Stakeholder-Driven Analysis/Comanche_Creek/data/raw",  ##files are in current directory (couldn't get this to work without the full file path- fix later)
+#                       pattern = "B4.TIF", ## This would be whatever your file extension
+#                       full.names = F)
+# 
+# ## now read your list into lapply/mclappy
+# 
+# mclapply(my.files, function(x){
+#   Red_crop_grassy <- crop(Red.files, y = GrassyUTM) ##crop the raster
+#   outName<- .suffix(x, "red_clipped_grassy")  ##store the new name for output
+#   #writeRater(red_clipped_grassy, outname) ## write out the new clipped file
+# }, mc.cores = 1)
 
-## now read your list into lapply/mclappy
+#### Data Frame ####
+#now I have a bunch of csv's for each month and year with NDVI data and I want to put them all into one data frame
 
-mclapply(my.files, function(x){
-  Red_crop_grassy <- crop(Red.files, y = GrassyUTM) ##crop the raster
-  outName<- .suffix(x, "red_clipped_grassy")  ##store the new name for output
-  #writeRater(red_clipped_grassy, outname) ## write out the new clipped file
-}, mc.cores = 1)
+df <- list.files(path="data/processed", full.names = TRUE) %>% 
+  lapply(read_csv) %>% 
+  bind_rows 
 
-                               
+summary(df)
+View(df)
+
+write.csv(df, "data/processed/NDVIGrassyNoName_Full.csv")
