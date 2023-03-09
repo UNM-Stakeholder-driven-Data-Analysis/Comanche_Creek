@@ -10,7 +10,7 @@ library(nortest)
 
 NDVI_Full <- read.csv("data/processed/NDVIGrassyNoName_Full.csv", header = T, stringsAsFactors = T)
 
-#### Looking at the data ####
+#### Data Types ####
 dim(NDVI_Full)
 
 #6 variables and 250,384 observations
@@ -21,6 +21,7 @@ summary(NDVI_Full) #gives mean, median, min, and max
 
 str(NDVI_Full) #shows different data types
 
+#### Data Distribution ####
 #let's look at the distribution
 hist(NDVI_Full$NDVI)
 
@@ -57,3 +58,26 @@ NDVI_Full_BA <- NDVI_Full %>%
 summary(NDVI_Full_BA)
 
 #next step- convert Period from character to factor
+
+NDVI_Full_BA$Period <- as.factor(NDVI_Full_BA$Period)
+class(NDVI_Full_BA$Period)
+
+#Histograms of data Before vs After
+NDVI_Full_BA %>% mutate(Period = fct_relevel(Period, 
+                                           "Before", "After"))%>% ggplot(aes(x=NDVI)) + 
+                geom_histogram() +
+                facet_wrap(~Period) +
+                labs(title="NDVI Histogram",x="NDVI", y = "Number of observations")
+
+
+#Histograms for Before and After per site
+NDVI_Full_BA %>% mutate(Period = fct_relevel(Period, 
+                                             "Before", "After")) %>% ggplot(aes(x=NDVI)) + 
+  geom_histogram() +
+  facet_wrap(~Period + Site) +
+  labs(title="NDVI Histogram",x="NDVI", y = "Number of observations")
+
+#
+
+
+
