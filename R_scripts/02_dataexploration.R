@@ -140,12 +140,49 @@ shapiro.test(NDVI_2013$NDVI)
 #going to check one site at a time
 #Average observations within the same month:
 dat_monthly = 
-  NDVI_Full %>%
-  mutate(yr = lubridate::year(Year)) %>%
-  mutate(mo = lubridate::month(Month)) %>%
-  dplyr::select(Site, yr, mo, Value) %>%
+  NDVI_Full_BA %>%
+  mutate(yr = lubridate::year(new_date)) %>%
+  mutate(mo = lubridate::month(new_date)) %>%
+  dplyr::select(Site, yr, mo, NDVI) %>%
   group_by(Site, yr, mo) %>%
-  summarise(Value.mn = mean(Value, aQna.rm = T)) %>%
+  summarise(Value.mn = mean(NDVI, aQna.rm = T)) %>%
   mutate(date = paste(yr, mo, "15", sep="-")) %>%
   mutate(date = as.Date(date))
 
+#subset data into one site
+temp = dat_monthly[dat_monthly$Site == "Grassy_Creek",]
+
+### make this a time series object
+#make sure data are ordered by date
+temp = temp %>% arrange(date) 
+## second, make the spacing of dates consistent and fill in missing obs with NA. This is a handy fxn. You can also create a df of evenly spaced dates and left_join the data to this.
+temp_ts =
+  temp %>% 
+  complete(date = seq(min(date), max(date), by = "1 month"), 
+           fill = list(value = NA)) %>%
+  as_tsibble(index = date)
+#this didn't work for me so I'm just going to fix it in Excel for now
+
+write.csv(temp, "temp_dates.csv")
+temp_dates <- read.csv("data/processed/temp_dates.csv", header = T, stringsAsFactors = T)
+temp_dates$date_new<-as.POSIXct(temp_dates$date,format="%m/%d/%Y")
+temp_ts <- temp_dates[,-4]
+
+head (temp_ts)
+
+#convert to a ts object 
+head (temp_ts)
+temp_ts = ts(temp_ts$Value.mn, frequency=2, start=c(2005, 7))
+
+# check that you specified the ts correctly
+print(temp_ts, calendar = T) 
+
+### now we're ready to check for temporal autocorrelation in this ts!
+# I prefer the forecast pkg's Acf fxn over base R acf() because Acf() doesn't include 0 (which is always 1) and shows month #s by default instead of decimal years. Note the different options for dealing with NAs and how this changes the results (see ?na.fail and ?Acf for details). 
+forecast::Acf(temp_ts, na.action = na.pass) # filling in NAs with likely points
+forecast::Acf(temp_ts, na.action = na.contiguous) #does longest contigous section
+forecast::Acf(temp_ts, na.action = na.interp)
+
+forecast::Pacf(temp_ts, na.action = na.pass)
+forecast::Pacf(temp_ts, na.action = na.contiguous)
+forecast::Pacf(temp_ts, na.action = na.interp)
