@@ -62,8 +62,7 @@ NDVI_Full_BA <- NDVI_Full %>%
 NDVI_Full_BA$Period <- as.factor(NDVI_Full_BA$Period)
 class(NDVI_Full_BA$Period)
 
-summary(NDVI_Full_BA)
-
+str(NDVI_Full_BA)
 
 #### Data Types ####
 dim(NDVI_Full)
@@ -79,6 +78,7 @@ str(NDVI_Full) #shows different data types
 #### Data Distribution ####
 #let's look at the distribution
 hist(NDVI_Full$NDVI)
+qqPlot(NDVI_Full_BA$NDVI)
 
 #we can make it look a little nicer
 NDVI_Full %>% ggplot(aes(x=NDVI)) + geom_histogram() +
@@ -89,10 +89,12 @@ NDVI_Full %>% ggplot(aes(x=NDVI)) +
               geom_histogram() +
               facet_wrap(~Site) +
   labs(title="NDVI Histogram",x="NDVI", y = "Number of observations")
+#QQ Plot
+temp = NDVI_Full_BA[NDVI_Full_BA$Site == "Grassy_Creek",]
+qqPlot(temp$NDVI, main = "QQ Plot Grassy Creek")
 
-
-
-
+temp =NDVI_Full_BA[NDVI_Full_BA$Site == "NoName_Creek",]
+qqPlot(temp$NDVI, main = "QQ Plot NoName Creek")
 
 #Histograms of data Before vs After
 NDVI_Full_BA %>% mutate(Period = fct_relevel(Period, 
@@ -109,9 +111,14 @@ NDVI_Full_BA %>% mutate(Period = fct_relevel(Period,
   facet_wrap(~Period + Site) +
   labs(title="NDVI Histogram",x="NDVI", y = "Number of observations")
 
-#
+#Hisogram for one year
+NDVI_2013 <- NDVI_Full_BA %>% filter(Year=="2013", Month == "8", Site == "Grassy_Creek")
+  
+hist(NDVI_2013$NDVI)
 
+str(NDVI_2013)
 
+shapiro.test(NDVI_2013$NDVI)
 
 
 #### Data Structure and Relationships ####
