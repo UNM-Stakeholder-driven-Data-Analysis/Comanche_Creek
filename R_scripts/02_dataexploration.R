@@ -64,6 +64,15 @@ class(NDVI_Full_BA$Period)
 
 str(NDVI_Full_BA)
 
+#make dataframe with full date
+NDVI_Full_BA$Day <- c(15)
+
+NDVI_Full_BA$new_date <- as.Date(paste(NDVI_Full_BA$Year,NDVI_Full_BA$Month, NDVI_Full_BA$Day,
+                               sep = "-" ), format = "%Y-%m-%d")
+
+str(NDVI_Full_BA$new_date,na.rm=T)
+
+
 #### Data Types ####
 dim(NDVI_Full)
 
@@ -123,4 +132,20 @@ shapiro.test(NDVI_2013$NDVI)
 
 #### Data Structure and Relationships ####
 #testing for autocorrelation
+
+
+
+##Check for temporal autocorrelation##
+
+#going to check one site at a time
+#Average observations within the same month:
+dat_monthly = 
+  NDVI_Full %>%
+  mutate(yr = lubridate::year(Year)) %>%
+  mutate(mo = lubridate::month(Month)) %>%
+  dplyr::select(Site, yr, mo, Value) %>%
+  group_by(Site, yr, mo) %>%
+  summarise(Value.mn = mean(Value, aQna.rm = T)) %>%
+  mutate(date = paste(yr, mo, "15", sep="-")) %>%
+  mutate(date = as.Date(date))
 
