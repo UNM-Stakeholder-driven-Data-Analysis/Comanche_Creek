@@ -33,6 +33,7 @@ library(forecast) # I like their Acf fxn
 library(ape) # for spatial autocorrelation
 library(ade4)# for spatial autocorrelation
 library(rgdal) # for mapping
+library(car)
 
 #### Load Data ####
 
@@ -186,3 +187,72 @@ forecast::Acf(temp_ts, na.action = na.interp)
 forecast::Pacf(temp_ts, na.action = na.pass)
 forecast::Pacf(temp_ts, na.action = na.contiguous)
 forecast::Pacf(temp_ts, na.action = na.interp)
+
+## modeling?? ##
+
+model.NDVI<-lm(NDVI~new_date,data=NDVI_Full_BA)
+summary(model.NDVI)
+# test model assumptions
+# homogeneity of variances 
+plot(fitted(model.NDVI),resid(model.NDVI)) # should not show a pattern in the residuals vs. fitted plot
+# normality of residuals
+qqnorm(resid(model.NDVI)) # should be a straight line, or close to it
+
+## ANOVA ##
+###### ADVANCED - do a statistical Analysis of variance (ANOVA)
+###### to test differences in RECO_dayint among seasons
+# Question: 
+# linear statistical model using a factor for x in y~x rather than continuous variable
+
+model.Period<-lm(NDVI~Period,data=NDVI_Full_BA)
+plot(fitted(model.Period), res)
+
+length(NDVI_Full_BA$NDVI)
+length(NDVI_Full_BA$Period)
+# get results from model
+
+# select Target attribute and 
+# Predictor attribute
+Y<- NDVI_Full_BA[,"NDVI"] 
+X<- NDVI_Full_BA[,"new_date"]
+
+# fit a regression model
+model <- lm(Y~X)
+
+# get list of residuals 
+res <- resid(model)
+res
+
+# produce residual vs. fitted plot
+plot(fitted(model), res)
+
+# add a horizontal line at 0 
+abline(0,0)
+
+# create Q-Q plot for residuals
+qqnorm(res)
+
+# add a straight diagonal line 
+# to the plot
+qqline(res)
+
+plot(density(res))
+###ANOVA
+
+model.Period2 <- lm( I(NDVI * 1e6) ~ Site * Period, data=NDVI_Full_BA)
+library(car)
+Anova( model.Period2, type=2)
+
+### timeplot
+
+timeplot_period<-ggplot(data=NDVI_Full_BA, aes(x=new_date, y=NDVI))+ 
+  facet_wrap(vars(Period))+
+  geom_point()+ 
+  #the next line adds a LINEAR trendline (y~(read: as function of) x)
+  geom_smooth(method="loess",se=TRUE,colour="black",fullrange=FALSE,size=0.5)+ 
+  theme_bw() + 
+  ylab("NDVI")+
+  xlab("Time")
+timeplot_period
+
+
