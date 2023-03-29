@@ -81,4 +81,36 @@ for (i in 1:18){
   i
 }
 
+output$ID = paste(output$x,output$y,sep="_")
+
+write.csv(output, "data/processed/GrassyCreek_Dataframe.csv")
+  
+
 ## repeat loop for No Name Creek
+for (i in 1:18){
+  #get the red and infrared rasters
+  temp.red <- raster(str_c("data/raw/", RedBands[i]))
+  temp.infrared <-raster(str_c("data/raw/", InfraredBands[i]))
+  #crop the rasters to the shapefile
+  Red_NoNameMasked <- mask(x = temp.red, mask = NoNameUTM)
+  Infra_NoNameMasked <- mask(x = temp.infrared, mask = NoNameUTM)
+  #calculate NDVI
+  NoNameNDVI = (Infra_NoNameMasked - Red_NoNameMasked) / (Infra_NoNameMasked + Red_NoNameMasked)
+  
+  #extract xy coordinates from raster#
+  #masking might be redundant, fix if it takes a long time
+  test <- raster::extract(NoNameNDVI, NoNameUTM, df = TRUE, cellnumbers = TRUE)
+  # Order (for checking purposes)
+  test <- test[order(test$cell),]
+  # Extract coordinates
+  xy <- xyFromCell(NoNameNDVI, cell = test$cell, spatial = FALSE)
+  
+  # Convert to df and add cellnumber
+  xy <- as.data.frame(xy)
+  xy$cell <- test$cell
+  #make into a dataframe with same columns as output
+  df.noname <- tibble (x=xy$x, y=xy$y, NDVI=test$layer, month=str_sub(RedBands[i],22,23), year=str_sub(RedBands[i],18,21), site="NoName_Creek", cell = xy$cell)
+  #make the output by combining iterations of dataframes
+  output_NoName <- rbind(output, df.noname) 
+  i
+}
