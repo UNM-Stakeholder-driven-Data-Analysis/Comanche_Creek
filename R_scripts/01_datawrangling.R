@@ -14,6 +14,12 @@
 #install.packages('reproducible')
 #install.packages('readr')
 #install.packages('dplyr')
+install.packages("remotes")
+install.packages('devtools')
+
+library(remotes)
+library(devtools)
+install_github('azvoleff/teamlucc')
 
 library(stars)
 library(sf)
@@ -54,8 +60,8 @@ NoNameCreekWatershed
 
 #Add Landsat data; we need red (band 4) and infrared (band 5) for NDVI
 
-red <- raster("data/raw/LE07_L1TP_033035_20050827_20200914_02_T1_B4.TIF")
-near.infrared <- raster("data/raw/LE07_L1TP_033035_20050827_20200914_02_T1_B5.TIF")
+red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
+near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
 
 
 #reproject the watershed shapefiles using the crs for the Landsat data, in this case we using the 'red' band which uses the UTM projection
@@ -92,6 +98,7 @@ plot(GrassyUTM,
 # crop the lidar raster using the vector extent
 red_crop_grassy <- crop(x = red, y= GrassyUTM)
 plot(red_crop_grassy)
+
 
 # add shapefile on top of the existing raster
 plot(GrassyUTM, add = TRUE) 
@@ -251,11 +258,17 @@ write.csv(NDVINoName082005, "data/processed/NDVINoName082005.csv")
 #### Data Frame ####
 #now I have a bunch of csv's for each month and year with NDVI data and I want to put them all into one data frame
 
-df <- list.files(path="data/processed", full.names = TRUE) %>% 
+df <- list.files(path="data/processed/NDVI_Filled", full.names = TRUE) %>% 
   lapply(read_csv) %>% 
   bind_rows 
 
 summary(df)
 View(df)
 
-write.csv(df, "data/processed/NDVIGrassyNoName_Full.csv")
+write.csv(df, "data/processed/NDVI_Filled_GrassyNoName_Full.csv")
+
+#### Extract XY Coordinates ####
+
+xyFromCell(Grassyndvi, 1:5419)
+
+df_coordNDVI_082013 <- data.frame(xyFromCell(Grassyndvi, 1:5419), NDVI = Grassyndvi_noNAs)
