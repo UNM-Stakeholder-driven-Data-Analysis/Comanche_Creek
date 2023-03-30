@@ -87,6 +87,10 @@ write.csv(output, "data/processed/GrassyCreek_Dataframe.csv")
   
 
 ## repeat loop for No Name Creek
+#output
+#this is the final dataframe
+output <- tibble(x=NA, y=NA, NDVI=NA, month=NA, year=NA, site=NA, cell=NA)
+
 for (i in 1:18){
   #get the red and infrared rasters
   temp.red <- raster(str_c("data/raw/", RedBands[i]))
@@ -111,6 +115,17 @@ for (i in 1:18){
   #make into a dataframe with same columns as output
   df.noname <- tibble (x=xy$x, y=xy$y, NDVI=test$layer, month=str_sub(RedBands[i],22,23), year=str_sub(RedBands[i],18,21), site="NoName_Creek", cell = xy$cell)
   #make the output by combining iterations of dataframes
-  output_NoName <- rbind(output, df.noname) 
-  i
+  output <- rbind(output, df.noname) 
 }
+output$ID = paste(output$x,output$y,sep="_")
+
+write.csv(output, "data/processed/NoNameCreek_Dataframe.csv")
+
+#### Create Full DataFrame ####
+
+Full_Dataframe <- list.files(path="data/processed/", pattern = "_Dataframe", full.names = TRUE) %>% 
+  lapply(read_csv) %>% 
+  bind_rows %>%
+  na.omit(Full_Dataframe)
+
+
