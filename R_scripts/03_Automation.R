@@ -39,6 +39,7 @@ GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                 "Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                 "Watersheds_no name creek")
+RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
 
 red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
 
@@ -47,6 +48,8 @@ GrassyUTM <- spTransform(GrassyCreekWatershed,
                          crs(red))
 NoNameUTM <- spTransform(NoNameCreekWatershed,
                          crs(red))
+RewettingUTM <- spTransform(RewettingSites,
+                            crs(red))
 
 #output
 #this is the final dataframe
@@ -128,4 +131,43 @@ Full_Dataframe <- list.files(path="data/processed/", pattern = "_Dataframe", ful
   bind_rows %>%
   na.omit(Full_Dataframe)
 
+write.csv(Full_Dataframe, "data/processed/Full_Dataframe.csv")
 
+#### Rewetting Loop ####
+
+#output
+#this is the final dataframe
+output_rewetting <- tibble(x=NA, y=NA, NDVI=NA, month=NA, year=NA, site=NA, cell=NA)
+
+#for loop
+for (i in 1:18){
+  #get the red and infrared rasters
+  temp.red <- raster(str_c("data/raw/", RedBands[i]))
+  temp.infrared <-raster(str_c("data/raw/", InfraredBands[i]))
+  #crop the rasters to the shapefile
+  Red_RewettingMasked <- mask(x = temp.red, mask = RewettingUTM)
+  Infra_RewettingMasked <- mask(x = temp.infrared, mask = RewettingUTM)
+  #calculate NDVI
+  RewettingNDVI = (Infra_RewettingMasked - Red_RewettingMasked) / (Infra_RewettingMasked + Red_RewettingMasked)
+  
+  #extract xy coordinates from raster#
+  #masking might be redundant, fix if it takes a long time
+  test <- raster::extract(RewettingNDVI, RewettingUTM, df = TRUE, cellnumbers = TRUE)
+  # Order (for checking purposes)
+  test <- test[order(test$cell),]
+  # Extract coordinates
+  xy <- xyFromCell(RewettingNDVI, cell = test$cell, spatial = FALSE)
+  
+  # Convert to df and add cellnumber
+  xy <- as.data.frame(xy)
+  xy$cell <- test$cell
+  #make into a dataframe with same columns as output
+  df.rewetting <- tibble (x=xy$x, y=xy$y, NDVI=test$layer, month=str_sub(RedBands[i],22,23), year=str_sub(RedBands[i],18,21), site="Rewetting_Sites", cell = xy$cell)
+  #make the output by combining iterations of dataframes
+  output_rewetting <- rbind(output_rewetting, df.rewetting) 
+  i
+}
+
+output_rewetting$ID = paste(output_rewetting$x,output_rewetting$y,sep="_")
+
+write.csv(output_rewetting, "data/processed/Rewetting_Dataframe.csv")
