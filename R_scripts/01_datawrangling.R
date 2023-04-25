@@ -14,12 +14,6 @@
 #install.packages('reproducible')
 #install.packages('readr')
 #install.packages('dplyr')
-install.packages("remotes")
-install.packages('devtools')
-
-library(remotes)
-library(devtools)
-install_github('azvoleff/teamlucc')
 
 library(stars)
 library(sf)
@@ -32,18 +26,39 @@ library(parallel)
 library(reproducible)
 library(dplyr)
 library(readr)
+library(stringr)
+library(terra)
 
 #### Mapping ####
 
 #creating basemap of Valle Vidal unit on Carson Nat'l Forest
-# ValleVidalMap <- get_stamenmap(bbox = c(left = -105.3393,
-#                                 bottom = 36.7202,
-#                                 right = -105.2284,
-#                                 top = 36.8401),
-#                        maptype = "terrain", 
-#                        crop = FALSE,
-#                        zoom = 12)
+ValleVidalMap <- get_stamenmap(bbox = c(left = -105.3393,
+                                bottom = 36.7202,
+                                right = -105.2284,
+                                top = 36.8401),
+                       maptype = "terrain",
+                       crop = FALSE,
+                       zoom = 12)
+# plot shapefiles
+plot(ValleVidalMap)
+plot(NoNameCreekWatershed, col = "green", add = TRUE)
+plot(GrassyCreekWatershed, col = "blue", add = TRUE)
+#I can't get both shapefiles to plot on the same map, so I'm   going to move on for now and come back to this later
+
+##trying to plot on basemap##
+
 # ggmap(ValleVidalMap)
+# colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
+# 
+# plot(ValleVidalMap,
+#      main = "ValleVidalMap",
+#      col = grey(1:100/100))
+# plot(Rewettingndvi, 
+#      main = "NDVI Rewetting",
+#      add = TRUE, alpha = 1.0,
+#      zlim=c(0, 0.6), col=colors)
+
+
 
 #### Load Data ####
 
@@ -52,6 +67,10 @@ GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_no name creek")
+RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
+
+WetlandAreas <- readOGR(dsn = "data/raw/WetlandAreas", "RevisedWetlandAreas")
+
 #View metadata to get info about object class, coordinate reference system, and spatial extent
 GrassyCreekWatershed
 NoNameCreekWatershed
@@ -62,7 +81,6 @@ NoNameCreekWatershed
 
 red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
 near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
-
 
 #reproject the watershed shapefiles using the crs for the Landsat data, in this case we using the 'red' band which uses the UTM projection
 
@@ -76,13 +94,6 @@ NoNameUTM <- spTransform(NoNameCreekWatershed,
                          crs(red))
 crs(NoNameUTM)
 
-
-# plot shapefiles
-# plot(ValleVidalMap)
-# plot(NoNameCreekWatershed, col = "green", add = TRUE)
-# plot(GrassyCreekWatershed, col = "blue", add = TRUE)
-#   #I can't get both shapefiles to plot on the same map, so I'm   going to move on for now and come back to this later
-
 #### Grassy Creek ####
 
 #plot red band
@@ -94,6 +105,7 @@ plot(GrassyUTM,
      axes = TRUE,
      border = "blue",
      add = TRUE)
+
 
 # crop the lidar raster using the vector extent
 red_crop_grassy <- crop(x = red, y= GrassyUTM)
@@ -118,7 +130,7 @@ plot(GrassyUTM,
      border = "blue",
      add = TRUE)
 
-# crop the lidar raster using the vector extent
+# crop the infrared raster using the vector extent
 near.infrared_crop_grassy <- crop(x = near.infrared, y= GrassyUTM)
 plot(near.infrared_crop_grassy)
 
@@ -238,23 +250,6 @@ NDVINoName082005 = data.frame (Site = "NoName_Creek",
 write.csv(NDVINoName082005, "data/processed/NDVINoName082005.csv")
   
 
-#### Automation ####
-#Thanks to Alex Cameron for explaining this to me and annotating the code
-
-#create a list of files
-
-# Red.files<- list.files(path = "C:/Users/laure/Documents/1- UNM/Stakeholder-Driven Analysis/Comanche_Creek/data/raw",  ##files are in current directory (couldn't get this to work without the full file path- fix later)
-#                       pattern = "B4.TIF", ## This would be whatever your file extension
-#                       full.names = F)
-# 
-# ## now read your list into lapply/mclappy
-# 
-# mclapply(my.files, function(x){
-#   Red_crop_grassy <- crop(Red.files, y = GrassyUTM) ##crop the raster
-#   outName<- .suffix(x, "red_clipped_grassy")  ##store the new name for output
-#   #writeRater(red_clipped_grassy, outname) ## write out the new clipped file
-# }, mc.cores = 1)
-
 #### Data Frame ####
 #now I have a bunch of csv's for each month and year with NDVI data and I want to put them all into one data frame
 
@@ -271,4 +266,145 @@ write.csv(df, "data/processed/NDVI_Filled_GrassyNoName_Full.csv")
 
 xyFromCell(Grassyndvi, 1:5419)
 
+class(xyFromCell(Grassyndvi, 1:5419))
+
 df_coordNDVI_082013 <- data.frame(xyFromCell(Grassyndvi, 1:5419), NDVI = Grassyndvi_noNAs)
+
+# df$ID = paste (df$x, df$y, sep = "_")
+#creates a unique number for each plot
+
+#create a dataframe with x, y, NDVI, x_y, month, year, site for each raster
+#then use rbind to join the dataframes together
+
+#### Potential Rewetting Sites ####
+
+RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
+
+crs(RewettingSites)
+
+RewettingUTM <- spTransform(RewettingSites, crs(red))
+
+#plot red band
+plot(red, col = rev(terrain.colors(50)))
+
+#plot Rewetting shapefile
+plot(RewettingUTM,
+     main = "Grassy Creek Watershed",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+red_crop_rewetting <- crop(x = red, y= RewettingUTM)
+plot(red_crop_rewetting)
+
+
+# add shapefile on top of the existing raster
+plot(RewettingUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
+RewettingMasked <- mask(x = red_crop_rewetting, mask = RewettingUTM)
+plot(RewettingMasked)
+
+##Do the same for the infrared band##
+#plot infrared band
+plot(near.infrared, col = rev(terrain.colors(50)))
+
+#plot rewetting shapefile
+plot(RewettingUTM,
+     main = "Rewetting Sites",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+near.infrared_crop_rewetting <- crop(x = near.infrared, y= RewettingUTM)
+plot(near.infrared_crop_rewetting)
+
+# add shapefile on top of the existing raster
+plot(RewettingUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+Rewettinginfra.Masked <- mask(x = near.infrared_crop_rewetting, mask = RewettingUTM)
+plot(Rewettinginfra.Masked)
+
+#Do math for NDVI and plot
+
+Rewettingndvi = (Rewettinginfra.Masked - RewettingMasked) / (Rewettinginfra.Masked + RewettingMasked)
+
+colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
+
+plot(Rewettingndvi, zlim=c(0, 0.6), col=colors)
+
+#Let's see what the NDVI values look like
+hist(Rewettingndvi)
+
+#### Wetland Areas ####
+
+WetlandUTM <- spTransform(WetlandAreas, crs(red))
+
+#plot red band
+plot(red, col = rev(terrain.colors(50)))
+
+#plot Rewetting shapefile
+plot(WetlandUTM,
+     main = "Wetland Areas",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+red_crop_wetland <- crop(x = red, y= WetlandUTM)
+plot(red_crop_wetland)
+
+
+# add shapefile on top of the existing raster
+plot(WetlandUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
+WetlandMasked <- mask(x = red_crop_wetland, mask = WetlandUTM)
+plot(WetlandMasked)
+
+##Do the same for the infrared band##
+#plot infrared band
+plot(near.infrared, col = rev(terrain.colors(50)))
+
+#plot rewetting shapefile
+plot(WetlandUTM,
+     main = "Wetland Areas",
+     axes = TRUE,
+     border = "blue",
+     add = TRUE)
+
+# crop the lidar raster using the vector extent
+near.infrared_crop_wetland <- crop(x = near.infrared, y= WetlandUTM)
+plot(near.infrared_crop_wetland)
+
+# add shapefile on top of the existing raster
+plot(WetlandUTM, add = TRUE) 
+
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
+Wetlandinfra.Masked <- mask(x = near.infrared_crop_wetland, mask = WetlandUTM)
+plot(Wetlandinfra.Masked)
+
+#Do math for NDVI and plot
+
+Wetlandndvi = (Wetlandinfra.Masked - WetlandMasked) / (Wetlandinfra.Masked + WetlandMasked)
+
+colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
+
+plot(Wetlandndvi, zlim=c(0, 0.6), col=colors)
+
+#Let's see what the NDVI values look like
+hist(Wetlandndvi)
+
+
+WetlandKeyAreas <- Wetlandndvi > 0.44992
+
+WetlandKeyAreas[Wetlandndvi < 0.44992] <- NA
+
+plot(WetlandKeyAreas)
+
+
+
+

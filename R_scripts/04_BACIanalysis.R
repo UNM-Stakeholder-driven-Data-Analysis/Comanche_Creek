@@ -73,3 +73,21 @@ baci.plot.NDVI <- ggplot(NDVI_byplot.means, aes(x=period, y=mean, group=treatmen
   ylab("NDVI")
 
 baci.plot.NDVI
+
+#run mutli-level model to determine if effect size is significant
+lmer.TotalNDVI <-lmer(NDVI ~ period + treatment + period:treatment + (1|year), data = NDVI_byplot)
+anova(lmer.TotalNDVI)
+
+#p<2e-16
+
+#### Box plot whole area ####
+
+NDVI_byplot$period<-factor(NDVI_byplot$period, levels = c("Before", "After"))
+
+boxplot(NDVI~period,data=NDVI_byplot)
+
+p1 <- ggplot(data=NDVI_byplot, aes(x=period, y=NDVI, fill=treatment)) + 
+  geom_boxplot() +
+  facet_wrap(~treatment, scale="free")
+
+plot(p1)

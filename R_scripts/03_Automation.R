@@ -39,7 +39,6 @@ GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                 "Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                 "Watersheds_no name creek")
-RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
 
 red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
 
