@@ -14,9 +14,8 @@ RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential R
 GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries","Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries","Watersheds_no name creek")
 #### Mapping ####
-# API KEY -> AIzaSyB0v-VMO8HMKKe9Yml9JqsgxraHPmK2LYY
 
-api_secret <- 'AIzaSyB0v-VMO8HMKKe9Yml9JqsgxraHPmK2LYY'
+api_secret <- ''
 register_google(key = api_secret)
 
 RewettingNewCRS <- spTransform(RewettingSites,
