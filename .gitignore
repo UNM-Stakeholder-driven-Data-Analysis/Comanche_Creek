@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+
+.DS_Store
+
+data/raw/NHDPLUS_H_1302_HU4_GDB.gdb/
+
+data/raw/watershed boundaries _ No Name and Grassy Creeks/
