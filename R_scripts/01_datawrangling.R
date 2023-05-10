@@ -1,19 +1,8 @@
 #### Read Me ####
 
-#### Libraries ####
+#The purpose of this code is to understand and explore Landsat 8 imagery data and the shapefiles provided by Quivira. This will be used to develop a method for extracting NDVI values from the Landsat 8 data for the shapefiles. 
 
-# install.packages('devtools')
-# devtools::install_github("dkahle/ggmap")
-# install.packages('maps')
-# install.packages('rgdal')
-# install.packages('rgeos')
-# install.packages('raster')
-# install.packages('stars')
-# install.packages('sf')
-#install.packages('parallel')
-#install.packages('reproducible')
-#install.packages('readr')
-#install.packages('dplyr')
+#### Libraries ####
 
 library(stars)
 library(sf)
@@ -29,47 +18,18 @@ library(readr)
 library(stringr)
 library(terra)
 
-#### Mapping ####
-
-#creating basemap of Valle Vidal unit on Carson Nat'l Forest
-ValleVidalMap <- get_stamenmap(bbox = c(left = -105.3393,
-                                bottom = 36.7202,
-                                right = -105.2284,
-                                top = 36.8401),
-                       maptype = "terrain",
-                       crop = FALSE,
-                       zoom = 12)
-# plot shapefiles
-plot(ValleVidalMap)
-plot(NoNameCreekWatershed, col = "green", add = TRUE)
-plot(GrassyCreekWatershed, col = "blue", add = TRUE)
-#I can't get both shapefiles to plot on the same map, so I'm   going to move on for now and come back to this later
-
-##trying to plot on basemap##
-
-# ggmap(ValleVidalMap)
-# colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
-# 
-# plot(ValleVidalMap,
-#      main = "ValleVidalMap",
-#      col = grey(1:100/100))
-# plot(Rewettingndvi, 
-#      main = "NDVI Rewetting",
-#      add = TRUE, alpha = 1.0,
-#      zlim=c(0, 0.6), col=colors)
-
-
-
 #### Load Data ####
 
-#Loading shapefiles of Grassy Creek and No Name Creek watershed boundaries
+#Load shapefiles of Grassy Creek and No Name Creek watershed boundaries
 GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries",
                                "Watersheds_no name creek")
-RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
+#Load Landsat data; we need red (band 4) and infrared (band 5) for NDVI. We will use August 2013 to establish a method for extracting NDVI
+red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
+near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
 
-WetlandAreas <- readOGR(dsn = "data/raw/WetlandAreas", "RevisedWetlandAreas")
+#### Prep data for analysis ####
 
 #View metadata to get info about object class, coordinate reference system, and spatial extent
 GrassyCreekWatershed
@@ -77,13 +37,7 @@ NoNameCreekWatershed
 #these shapefiles are polygons using the transverse mercator  map projection 
 #we need them to be in UTM so they have the same crs as the Landsat 8 data
 
-#Add Landsat data; we need red (band 4) and infrared (band 5) for NDVI
-
-red <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B4.TIF")
-near.infrared <- raster("data/raw/LC08_L1TP_033034_20130809_20200912_02_T1_B5.TIF")
-
 #reproject the watershed shapefiles using the crs for the Landsat data, in this case we using the 'red' band which uses the UTM projection
-
 GrassyUTM <- spTransform(GrassyCreekWatershed,
                               crs(red))
 crs(GrassyUTM)
@@ -94,28 +48,28 @@ NoNameUTM <- spTransform(NoNameCreekWatershed,
                          crs(red))
 crs(NoNameUTM)
 
+
 #### Grassy Creek ####
+#calculate NDVI for Grassy Creek
 
 #plot red band
 plot(red, col = rev(terrain.colors(50)))
 
-#plot Grassy Creek shapefile
+#plot Grassy Creek shapefile over red band
 plot(GrassyUTM,
      main = "Grassy Creek Watershed",
      axes = TRUE,
      border = "blue",
      add = TRUE)
 
-
-# crop the lidar raster using the vector extent
+# crop the raster using the spatial extent of the Grassy UTM shapefile
 red_crop_grassy <- crop(x = red, y= GrassyUTM)
 plot(red_crop_grassy)
 
-
-# add shapefile on top of the existing raster
+# add shapefile on top of the existing raster to visualize 
 plot(GrassyUTM, add = TRUE) 
 
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
+#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells by making them transparent, showing just the cropped portion
 GrassyMasked <- mask(x = red_crop_grassy, mask = GrassyUTM)
 plot(GrassyMasked)
 
@@ -130,7 +84,7 @@ plot(GrassyUTM,
      border = "blue",
      add = TRUE)
 
-# crop the infrared raster using the vector extent
+# crop the raster using the spatial extent of the shapefile
 near.infrared_crop_grassy <- crop(x = near.infrared, y= GrassyUTM)
 plot(near.infrared_crop_grassy)
 
@@ -141,38 +95,33 @@ plot(GrassyUTM, add = TRUE)
 Grassyinfra.Masked <- mask(x = near.infrared_crop_grassy, mask = GrassyUTM)
 plot(Grassyinfra.Masked)
 
-#Do math for NDVI and plot
+#Use each raster layer to caclulate NDVI and plot
+#Grassyinfra.Masked= infrared layer and GrassyMasked= red layer
 
 Grassyndvi = (Grassyinfra.Masked - GrassyMasked) / (Grassyinfra.Masked + GrassyMasked)
 
 colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
 
 plot(Grassyndvi, zlim=c(0, 0.6), col=colors)
+#cyan = higher NDVI, red= lower NDVI
 
-#Let's see what the NDVI values look like
+#Look at NDVI values
 hist(Grassyndvi)
 
 #extract NDVI values from raster
 Grassyndvi_vals = values(Grassyndvi)
 Grassyndvi_vals
 
-#remove NAs
+#remove NAs, which are pixels outside the spaital extent of the shapefile
 Grassyndvi_noNAs <- Grassyndvi_vals[!is.na(Grassyndvi_vals)]
 
 #check out the data
 summary(Grassyndvi_noNAs)
 hist(Grassyndvi_noNAs)
 
-#make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
-
-NDVIGrassy082005 = data.frame (Site = "Grassy_Creek",
-                               Year = 2005,
-                               Month = 08,
-                               NDVI = Grassyndvi_noNAs)
-#make a CSV of the data
-write.csv(NDVIGrassy082005, "data/processed/NDVIGrassy082005.csv")
 
 #### No Name ####
+#calculate NDVI for Grassy Creek
 
 #plot red band
 plot(red, col = rev(terrain.colors(50)))
@@ -184,7 +133,7 @@ plot(NoNameUTM,
      border = "blue",
      add = TRUE)
 
-# crop the lidar raster using the vector extent
+# crop the raster using the spatial extent of the No Name Creek shapefile
 red_crop_noname <- crop(x = red, y= NoNameUTM)
 plot(red_crop_noname)
 
@@ -217,8 +166,7 @@ plot(NoNameUTM, add = TRUE)
 NoNameinfra.Masked <- mask(x = near.infrared_crop_noname, mask = NoNameUTM)
 plot(NoNameinfra.Masked)
 
-#Do math for NDVI and plot
-
+#Calculate NDVI and plot
 NoNamendvi = (NoNameinfra.Masked - NoNameMasked) / (NoNameinfra.Masked + NoNameMasked)
 
 colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
@@ -239,28 +187,6 @@ NoNamendvi_noNAs <- NoNamendvi_vals[!is.na(NoNamendvi_vals)]
 summary(NoNamendvi_noNAs)
 hist(NoNamendvi_noNAs)
 
-#make dataframe with Grassy Creek NDVI, No Name Creek NDVI, month, and year
-
-NDVINoName082005 = data.frame (Site = "NoName_Creek",
-                               Year = 2005,
-                               Month = 08,
-                               NDVI = NoNamendvi_noNAs)
-
-#make a CSV of the data                               
-write.csv(NDVINoName082005, "data/processed/NDVINoName082005.csv")
-  
-
-#### Data Frame ####
-#now I have a bunch of csv's for each month and year with NDVI data and I want to put them all into one data frame
-
-df <- list.files(path="data/processed/NDVI_Filled", full.names = TRUE) %>% 
-  lapply(read_csv) %>% 
-  bind_rows 
-
-summary(df)
-View(df)
-
-write.csv(df, "data/processed/NDVI_Filled_GrassyNoName_Full.csv")
 
 #### Extract XY Coordinates ####
 
@@ -270,141 +196,8 @@ class(xyFromCell(Grassyndvi, 1:5419))
 
 df_coordNDVI_082013 <- data.frame(xyFromCell(Grassyndvi, 1:5419), NDVI = Grassyndvi_noNAs)
 
-# df$ID = paste (df$x, df$y, sep = "_")
+df_coordNDVI_082013$ID = paste (df_coordNDVI_082013$x, df_coordNDVI_082013$y, sep = "_")
 #creates a unique number for each plot
 
-#create a dataframe with x, y, NDVI, x_y, month, year, site for each raster
-#then use rbind to join the dataframes together
-
-#### Potential Rewetting Sites ####
-
-RewettingSites <- readOGR(dsn = "data/raw/Potential_RewettingSites","Potential Rewetting Sites")
-
-crs(RewettingSites)
-
-RewettingUTM <- spTransform(RewettingSites, crs(red))
-
-#plot red band
-plot(red, col = rev(terrain.colors(50)))
-
-#plot Rewetting shapefile
-plot(RewettingUTM,
-     main = "Grassy Creek Watershed",
-     axes = TRUE,
-     border = "blue",
-     add = TRUE)
-
-# crop the lidar raster using the vector extent
-red_crop_rewetting <- crop(x = red, y= RewettingUTM)
-plot(red_crop_rewetting)
-
-
-# add shapefile on top of the existing raster
-plot(RewettingUTM, add = TRUE) 
-
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
-RewettingMasked <- mask(x = red_crop_rewetting, mask = RewettingUTM)
-plot(RewettingMasked)
-
-##Do the same for the infrared band##
-#plot infrared band
-plot(near.infrared, col = rev(terrain.colors(50)))
-
-#plot rewetting shapefile
-plot(RewettingUTM,
-     main = "Rewetting Sites",
-     axes = TRUE,
-     border = "blue",
-     add = TRUE)
-
-# crop the lidar raster using the vector extent
-near.infrared_crop_rewetting <- crop(x = near.infrared, y= RewettingUTM)
-plot(near.infrared_crop_rewetting)
-
-# add shapefile on top of the existing raster
-plot(RewettingUTM, add = TRUE) 
-
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
-Rewettinginfra.Masked <- mask(x = near.infrared_crop_rewetting, mask = RewettingUTM)
-plot(Rewettinginfra.Masked)
-
-#Do math for NDVI and plot
-
-Rewettingndvi = (Rewettinginfra.Masked - RewettingMasked) / (Rewettinginfra.Masked + RewettingMasked)
-
-colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
-
-plot(Rewettingndvi, zlim=c(0, 0.6), col=colors)
-
-#Let's see what the NDVI values look like
-hist(Rewettingndvi)
-
-#### Wetland Areas ####
-
-WetlandUTM <- spTransform(WetlandAreas, crs(red))
-
-#plot red band
-plot(red, col = rev(terrain.colors(50)))
-
-#plot Rewetting shapefile
-plot(WetlandUTM,
-     main = "Wetland Areas",
-     axes = TRUE,
-     border = "blue",
-     add = TRUE)
-
-# crop the lidar raster using the vector extent
-red_crop_wetland <- crop(x = red, y= WetlandUTM)
-plot(red_crop_wetland)
-
-
-# add shapefile on top of the existing raster
-plot(WetlandUTM, add = TRUE) 
-
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells transparent, showing just the cropped portion
-WetlandMasked <- mask(x = red_crop_wetland, mask = WetlandUTM)
-plot(WetlandMasked)
-
-##Do the same for the infrared band##
-#plot infrared band
-plot(near.infrared, col = rev(terrain.colors(50)))
-
-#plot rewetting shapefile
-plot(WetlandUTM,
-     main = "Wetland Areas",
-     axes = TRUE,
-     border = "blue",
-     add = TRUE)
-
-# crop the lidar raster using the vector extent
-near.infrared_crop_wetland <- crop(x = near.infrared, y= WetlandUTM)
-plot(near.infrared_crop_wetland)
-
-# add shapefile on top of the existing raster
-plot(WetlandUTM, add = TRUE) 
-
-#view the cropped raster, R can only plot raster data as a square, so this masks all the null cells
-Wetlandinfra.Masked <- mask(x = near.infrared_crop_wetland, mask = WetlandUTM)
-plot(Wetlandinfra.Masked)
-
-#Do math for NDVI and plot
-
-Wetlandndvi = (Wetlandinfra.Masked - WetlandMasked) / (Wetlandinfra.Masked + WetlandMasked)
-
-colors = colorRampPalette(c("red3", "white", "darkcyan"))(255)
-
-plot(Wetlandndvi, zlim=c(0, 0.6), col=colors)
-
-#Let's see what the NDVI values look like
-hist(Wetlandndvi)
-
-
-WetlandKeyAreas <- Wetlandndvi > 0.44992
-
-WetlandKeyAreas[Wetlandndvi < 0.44992] <- NA
-
-plot(WetlandKeyAreas)
-
-
-
-
+#Now that I have this method established, I will make a for loop to repeat this process for all the layers for each month and year (see Automation code)
+#The final output will be a dataframe with x, y, NDVI, x_y, month, year, site for each raster
