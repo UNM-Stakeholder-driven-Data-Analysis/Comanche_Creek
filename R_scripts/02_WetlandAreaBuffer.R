@@ -1,6 +1,7 @@
-#### read me ####
+#### Read Me ####
 
-# The purpose of this script is to create a shapefile that buffers the streams
+# The purpose of this script is to create a shapefile that buffers the streams. This buffer represents potential wetland expansion areas in each watershed
+#code created by Alex Webster
 
 #### libraries ####
 library(rgeos)
@@ -88,7 +89,13 @@ plot(GrassyBuf)
 NoNameBuf <- st_buffer(NoNameflow_UTM,dist=60,endCapStyle="ROUND")
 plot(NoNameBuf)
 
-??st_buffer
+#plot buffers
+plot(GrassyBuf, col = "lightblue", add = TRUE) 
+plot(Grassyflow_UTM, col = "blue", add = TRUE) 
+ 
+plot(NoNameBuf, col = "pink", add = TRUE) 
+plot(NoNameflow_UTM, col = "blue", add = TRUE) 
+
 
 #### save buffers ####
 
