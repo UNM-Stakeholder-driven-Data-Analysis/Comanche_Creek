@@ -15,7 +15,6 @@ install.packages('forecast') # I like their Acf fxn
 install.packages('ape') # for spatial autocorrelation
 install.packages('ade4')# for spatial autocorrelation
 install.packages('rgdal')
-install.packages('TSstudio')
 
 #Load libraries
 library(tmap)
@@ -33,46 +32,41 @@ library(ape) # for spatial autocorrelation
 library(ade4)# for spatial autocorrelation
 library(rgdal) # for mapping
 library(car)
-library(TSstudio)
 
 #### Load Data ####
 
-NDVI_Full <- read.csv("data/processed/Full_Dataframe.csv", header = T, stringsAsFactors = T)
+NDVI_Full <- read.csv("data/processed/FullBuff_Dataframe.csv", header = T, stringsAsFactors = T)
 
 #tidy data- make the before and after periods in the dataframe
 #"before" (2005-2013) and "after" (2013-2022)
 
-NDVI_Full <- NDVI_Full %>% 
-  mutate("period" = case_when(`year` == "2010" ~ "Before",
-                              `year` == "2011" ~ "Before",
-                              `year` == "2012" ~ "Before",
-                              `year` == "2013" ~ "Before",
-                              `year` == "2014" ~ "After",
-                              `year` == "2015" ~ "After",
-                              `year` == "2016" ~ "After",
-                              `year` == "2017" ~ "After",
-                              `year` == "2018" ~ "After",
-                              `year` == "2019" ~ "After",
-                              `year` == "2020" ~ "After",
-                              `year` == "2021" ~ "After",
-                              `year` == "2022" ~ "After"))
-
-NDVI_Full <- NDVI_Full %>% 
-  mutate("treatment" = case_when(`site` == "Grassy_Creek" ~ "Impact",
-                                 `site` == "NoName_Creek" ~ "Control"))
+NDVI_Full_BA <- NDVI_Full %>% 
+  mutate("Period" = case_when(`Year` == "2010" ~ "Before",
+                              `Year` == "2011" ~ "Before",
+                              `Year` == "2012" ~ "Before",
+                              `Year` == "2013" ~ "Before",
+                              `Year` == "2014" ~ "After",
+                              `Year` == "2015" ~ "After",
+                              `Year` == "2016" ~ "After",
+                              `Year` == "2017" ~ "After",
+                              `Year` == "2018" ~ "After",
+                              `Year` == "2019" ~ "After",
+                              `Year` == "2020" ~ "After",
+                              `Year` == "2021" ~ "After",
+                              `Year` == "2022" ~ "After"))
 #convert Period from character to factor
-NDVI_Full$period <- as.factor(NDVI_Full$period)
-class(NDVI_Full$period)
+NDVI_Full_BA$Period <- as.factor(NDVI_Full_BA$Period)
+class(NDVI_Full_BA$Period)
 
-str(NDVI_Full)
+str(NDVI_Full_BA)
 
 #make dataframe with full date
-NDVI_Full$Day <- c(15)
+NDVI_Full_BA$Day <- c(15)
 
-NDVI_Full$new_date <- as.Date(paste(NDVI_Full$year,NDVI_Full$month, NDVI_Full$day,
+NDVI_Full_BA$new_date <- as.Date(paste(NDVI_Full_BA$Year,NDVI_Full_BA$Month, NDVI_Full_BA$Day,
                                sep = "-" ), format = "%Y-%m-%d")
 
-str(NDVI_Full$new_date,na.rm=T)
+str(NDVI_Full_BA$new_date,na.rm=T)
 
 
 #### Data Types ####
@@ -142,7 +136,7 @@ shapiro.test(NDVI_2013$NDVI)
 #going to check one site at a time
 #Average observations within the same month:
 dat_monthly = 
-  NDVI_Full %>%
+  NDVI_Full_BA %>%
   mutate(yr = lubridate::year(new_date)) %>%
   mutate(mo = lubridate::month(new_date)) %>%
   dplyr::select(Site, yr, mo, NDVI) %>%
@@ -154,17 +148,17 @@ dat_monthly =
 #Average observations within the same year:
 
 dat_yearly = 
-  NDVI_Full %>%
+  NDVI_Full_BA %>%
   mutate(yr = lubridate::year(new_date)) %>%
   mutate(mo = lubridate::month(new_date)) %>%
-  dplyr::select(site, yr, NDVI) %>%
-  group_by(site, yr) %>%
+  dplyr::select(Site, yr, NDVI) %>%
+  group_by(Site, yr) %>%
   summarise(Value.mn = mean(NDVI, aQna.rm = T)) %>%
   mutate(date = paste(yr)) 
 
 
 #subset data into one site
-temp = dat_yearly[dat_yearly$site == "NoName_Creek",]
+temp = dat_yearly[dat_yearly$Site == "NoName_Creek",]
 
 ### make this a time series object
 #make sure data are ordered by date
@@ -202,8 +196,6 @@ forecast::Pacf(temp_ts, na.action = na.pass)
 forecast::Pacf(temp_ts, na.action = na.contiguous)
 forecast::Pacf(temp_ts, na.action = na.interp)
 
-
-ts_plot(temp_ts)
 ## modeling?? ##
 
 model.NDVI<-lm(NDVI~new_date,data=NDVI_Full_BA)
@@ -261,8 +253,8 @@ Anova( model.Period2, type=2)
 
 ### timeplot
 
-timeplot_period<-ggplot(data=NDVI_Full, aes(x=new_date, y=NDVI))+ 
-  facet_wrap(vars(period))+
+timeplot_period<-ggplot(data=NDVI_Full_BA, aes(x=new_date, y=NDVI))+ 
+  facet_wrap(vars(Period))+
   geom_point()+ 
   #the next line adds a LINEAR trendline (y~(read: as function of) x)
   geom_smooth(method="loess",se=TRUE,colour="black",fullrange=FALSE,size=0.5)+ 

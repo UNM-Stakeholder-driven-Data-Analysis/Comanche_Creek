@@ -16,12 +16,12 @@ library(lmerTest)
 
 #### Load Data ####
 
-NDVI_byplot <- read.csv("data/processed/Full_Dataframe.csv")
+NDVI_byplot_Full <- read.csv("data/processed/Full_Dataframe.csv")
 
 #### Arrange Data ####
 
 #Create new variables for control and impact sites and before and after periods
-NDVI_byplot <- NDVI_byplot %>% 
+NDVI_byplot_Full <- NDVI_byplot %>% 
   mutate("period" = case_when(`year` == "2010" ~ "Before",
                               `year` == "2011" ~ "Before",
                               `year` == "2012" ~ "Before",
@@ -35,26 +35,26 @@ NDVI_byplot <- NDVI_byplot %>%
                               `year` == "2020" ~ "After",
                               `year` == "2021" ~ "After",
                               `year` == "2022" ~ "After"))
-NDVI_byplot <- NDVI_byplot %>% 
+NDVI_byplot_Full <- NDVI_byplot_Full %>% 
   mutate("treatment" = case_when(`site` == "Grassy_Creek" ~ "Impact",
                               `site` == "NoName_Creek" ~ "Control"))
 
 #filter data so you can take averages of NDVI in Impact After, Control After, Impact Before and Control Before
 
-NDVI_ImpactAfter <- NDVI_byplot %>% filter(treatment=="Impact", period == "After")
+NDVI_ImpactAfter <- NDVI_byplot_Full %>% filter(treatment=="Impact", period == "After")
 
-NDVI_ControlAfter <- NDVI_byplot %>% filter(treatment=="Control", period == "After")
+NDVI_ControlAfter <- NDVI_byplot_Full %>% filter(treatment=="Control", period == "After")
 
-NDVI_ImpactBefore <- NDVI_byplot %>% filter(treatment=="Impact", period == "Before")
+NDVI_ImpactBefore <- NDVI_byplot_Full %>% filter(treatment=="Impact", period == "Before")
 
-NDVI_ControlBefore <- NDVI_byplot %>% filter(treatment=="Control", period == "Before")
+NDVI_ControlBefore <- NDVI_byplot_Full %>% filter(treatment=="Control", period == "Before")
 
 (mean(NDVI_ImpactAfter$NDVI) - mean(NDVI_ControlAfter$NDVI)) - (mean(NDVI_ImpactBefore$NDVI) - mean(NDVI_ControlBefore$NDVI))
 
 #BACI interaction effect is -0.0206697
 
 #calculate means and sd for NDVI
-NDVI_byplot.means <- NDVI_byplot %>%
+NDVI_byplot.means <- NDVI_byplot_Full %>%
   group_by(site, period, treatment) %>%
   summarise_at(.vars = vars(NDVI),
                .funs = c(mean="mean", sd="sd"), na.rm = TRUE)
@@ -74,19 +74,19 @@ baci.plot.NDVI <- ggplot(NDVI_byplot.means, aes(x=period, y=mean, group=treatmen
 
 baci.plot.NDVI
 
-#run mutli-level model to determine if effect size is significant
-lmer.TotalNDVI <-lmer(NDVI ~ period + treatment + period:treatment + (1|year), data = NDVI_byplot)
+#run multi-level model to determine if effect size is significant
+lmer.TotalNDVI <-lmer(NDVI ~ period + treatment + period:treatment + (1|year), data = NDVI_byplot_Full)
 anova(lmer.TotalNDVI)
 
 #p<2e-16
 
 #### Box plot whole area ####
 
-NDVI_byplot$period<-factor(NDVI_byplot$period, levels = c("Before", "After"))
+NDVI_byplot_Full$period<-factor(NDVI_byplot_Full$period, levels = c("Before", "After"))
 
-boxplot(NDVI~period,data=NDVI_byplot)
+boxplot(NDVI~period,data=NDVI_byplot_Full)
 
-p1 <- ggplot(data=NDVI_byplot, aes(x=period, y=NDVI, fill=treatment)) + 
+p1 <- ggplot(data=NDVI_byplot_Full, aes(x=period, y=NDVI, fill=treatment)) + 
   geom_boxplot() +
   facet_wrap(~treatment, scale="free")
 
