@@ -1,6 +1,6 @@
 #### Read Me ####
 
-#The purpose of this code is to understand and explore Landsat 8 imagery data and the shapefiles provided by Quivira. This will be used to develop a method for extracting NDVI values from the Landsat 8 data for the shapefiles. 
+#The purpose of this code is to understand and explore Landsat imagery data and the shapefiles provided by Quivira. This will be used to develop a method for extracting NDVI values from the Landsat data for the shapefiles. 
 
 #### Libraries ####
 

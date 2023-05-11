@@ -1,6 +1,6 @@
 #### Read Me ####
 
-#The purpose of this code is to calculate the BACI effect size and run a linear model to determine the significance of the effect size
+#The purpose of this code is to calculate the BACI effect size, run a linear model to determine the significance of the effect size, and create plots to visualize the BACI interaction
 
 #### Libraries ####
 
@@ -72,18 +72,6 @@ baci.plot.NDVI <- ggplot(NDVI_byplot.means, aes(x=period, y=mean, group=treatmen
 
 baci.plot.NDVI
 
-#### Box Plot Buffered Area ####
-
-NDVI_byplot_Buff$period<-factor(NDVI_byplot_Buff$period, levels = c("Before", "After"))
-
-boxplot(NDVI~period,data=NDVI_byplot_Buff)
-
-p1 <- ggplot(data=NDVI_byplot_Buff, aes(x=period, y=NDVI, fill=treatment)) + 
-  geom_boxplot() +
-  facet_wrap(~treatment, scale="free")
-
-plot(p1)
-
 #### Change "After" Period  to 2019-2022 ####
 
 NDVI_2 <- NDVI_byplot_Buff %>% 
@@ -141,6 +129,7 @@ anova(lmer.TotalNDVI)
 
 #p=0.8871 <- not significant 
 #treatment is sig, period is not, interaction is not
+#still no significant interaction effect when using later "after" period
 
 #### New Models for Buffer ####
 
@@ -171,9 +160,9 @@ NDVI_byplot_mns = NDVI_byplot_Buff %>%
   summarise(NDVI_mn = mean(NDVI, na.rm = T))
 #fit linear model
 lm.TotalNDVI <-lm(NDVI_mn ~ period + treatment + period:treatment, data = NDVI_byplot_mns)
-# check for temporal autocorrelation
+#check for temporal autocorrelation
 acf(resid(lm.TotalNDVI))
-# view summary
+#view summary
 anova(lm.TotalNDVI)
 summary(lm.TotalNDVI)
 
@@ -256,14 +245,4 @@ acf(resid(lm.TotalNDVI))
 anova(lm.TotalNDVI)
 summary(lm.TotalNDVI)
 
-### Box plot whole area ###
 
-NDVI_byplot_Full$period<-factor(NDVI_byplot_Full$period, levels = c("Before", "After"))
-
-boxplot(NDVI~period,data=NDVI_byplot_Full)
-
-p1 <- ggplot(data=NDVI_byplot_Full, aes(x=period, y=NDVI, fill=treatment)) + 
-  geom_boxplot() +
-  facet_wrap(~treatment, scale="free")
-
-plot(p1)

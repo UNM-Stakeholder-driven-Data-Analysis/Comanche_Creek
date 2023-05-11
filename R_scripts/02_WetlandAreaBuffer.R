@@ -1,6 +1,6 @@
 #### Read Me ####
 
-# The purpose of this script is to create a shapefile that buffers the streams. This buffer represents potential wetland expansion areas in each watershed
+# The purpose of this code is to create a shapefile that buffers the streams. This buffer represents potential wetland expansion areas in each watershed
 #code created by Alex Webster
 
 #### libraries ####
