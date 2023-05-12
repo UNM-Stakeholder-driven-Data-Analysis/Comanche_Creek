@@ -3,8 +3,160 @@
 .RData
 .Ruserdata
 
+<<<<<<< Updated upstream
 .DS_Store
 
 data/raw/NHDPLUS_H_1302_HU4_GDB.gdb/
 
 data/raw/watershed boundaries _ No Name and Grassy Creeks/
+=======
+*.TIF
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_ANG.txt
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_MTL.json
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_MTL.txt
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_MTL.xml
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_stac.json
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_072016/LC08_L1TP_033034_20160716_20200906_02_T1_thumb_small.jpeg
+
+*.tar
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_ANG.txt
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_MTL.json
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_MTL.txt
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_MTL.xml
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_stac.json
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_072017/LC08_L1TP_033034_20170703_20201015_02_T1_thumb_small.jpeg
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_ANG.txt
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_MTL.json
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_MTL.txt
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_MTL.xml
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_stac.json
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_082013/LC08_L1TP_033034_20130809_20200912_02_T1_thumb_small.jpeg
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_ANG.txt
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_MTL.json
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_MTL.txt
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_MTL.xml
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_stac.json
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_082014/LC08_L1TP_033034_20140812_20200911_02_T1_thumb_small.jpeg
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_ANG.txt
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_MTL.json
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_MTL.txt
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_MTL.xml
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_stac.json
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_082015/LC08_L1TP_033034_20150815_20200908_02_T1_thumb_small.jpeg
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_ANG.txt
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_MTL.json
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_MTL.txt
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_MTL.xml
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_stac.json
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_thumb_large.jpeg
+
+data/raw/Landsat8_082017/LC08_L1TP_033034_20170804_20200903_02_T1_thumb_small.jpeg
+
+data/raw/Potential Rewetting Sites.zip
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.cpg
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.dbf
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.prj
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.sbn
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.sbx
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.shp
+
+data/raw/Potential_RewettingSites/Potential Rewetting Sites.shx
+
+data/raw/watershed boundaries _ No Name and Grassy Creeks.zip
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.cpg
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.dbf
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.prj
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.sbn
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.sbx
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.shp
+
+data/raw/Watershed_Boundaries/Watersheds_grassy creek.shx
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.cpg
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.dbf
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.prj
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.sbn
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.sbx
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.shp
+
+data/raw/Watershed_Boundaries/Watersheds_no name creek.shx
+
+data/raw/delete later.jpeg
+>>>>>>> Stashed changes
+
+data/raw/WetlandAreas/RevisedWetlandAreas.CPG
+
+data/raw/WetlandAreas/RevisedWetlandAreas.dbf
+
+data/raw/WetlandAreas/RevisedWetlandAreas.prj
+
+data/raw/WetlandAreas/RevisedWetlandAreas.sbn
+
+data/raw/WetlandAreas/RevisedWetlandAreas.sbx
+
+data/raw/WetlandAreas/RevisedWetlandAreas.shp
+
+data/raw/WetlandAreas/RevisedWetlandAreas.shx

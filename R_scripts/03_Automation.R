@@ -15,6 +15,11 @@ library(tidyverse)
 
 #### Subset Red and Infrared Bands ####
 
+#Download raw files from Google Drive https://drive.google.com/drive/folders/1BUcrp3w0RnRCkpragy-PKkmmW2SjGXyy
+#The folder in this drive is called "raw" and contains all of the raw data files 
+#Put this "raw" folder in the "data" folder
+#The "data" folder should now have two folders: "processed" and "raw"
+
 #create files list of Landsat files
 files.list <- list.files("data/raw/", pattern = ".TIF")
 

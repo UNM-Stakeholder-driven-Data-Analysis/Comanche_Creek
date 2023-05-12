@@ -20,6 +20,11 @@ library(readr)
 
 #### import shapefiles of watersheds ####
 
+#Download raw files from Google Drive https://drive.google.com/drive/folders/1BUcrp3w0RnRCkpragy-PKkmmW2SjGXyy
+#The folder in this drive is called "raw" and contains all of the raw data files 
+#Put this "raw" folder in the "data" folder
+#The "data" folder should now have two folders: "processed" and "raw"
+
 GrassyCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries","Watersheds_grassy creek")
 NoNameCreekWatershed <- readOGR(dsn = "data/raw/Watershed_Boundaries","Watersheds_no name creek")
 
